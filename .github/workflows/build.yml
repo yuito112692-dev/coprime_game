@@ -39,7 +39,11 @@ jobs:
       # GitHub Pages のサブディレクトリパスに対応させるためのビルド指定
       # （リポジトリ名が <YOUR_REPOSITORY_NAME> の場合、--base-href でパスを指定します）
       - name: Build Web
-        run: flutter build web --release --base-href /${{ github.event.repository.name }}/
+        run: |
+          flutter build web --release \
+            --base-href /${{ github.event.repository.name }}/ \
+            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
 
       - name: Upload artifact for Pages
         uses: actions/upload-pages-artifact@v3
