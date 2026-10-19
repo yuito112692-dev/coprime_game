@@ -146,6 +146,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _roomCodeDialog(BuildContext context) async {
+
+    final parentContext = context;
+
     String roomCode = '';
     await showDialog(
       context: context,
@@ -169,7 +172,7 @@ class _HomePageState extends State<HomePage> {
               child: const Text('決定'),
               onPressed: () {
                 Navigator.of(context).pop();
-                _createOrJoinPrivateMatch(context, roomCode);
+                _createOrJoinPrivateMatch(parentContext, roomCode);
               },
             ),
           ],
