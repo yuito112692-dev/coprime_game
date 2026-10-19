@@ -71,17 +71,35 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
 
-  Future<void> _createRandomMatch(BuildContext context) async {
+  Future<void> _createOrJoinRandomMatch(BuildContext context) async {
     try {
-      final response = await supabase.from('random_match').insert({
-        'status': 'waiting',
-      }).select();
+      final response = await supabase.from('random_match').select()
+        .eq('status', 'waiting').maybeSingle();
+      if (response != null) {
+        // 既存の部屋が見つかった場合、参加する
+        final roomId = response['id'];
+        print('既存の部屋に参加します： $roomId');
 
-      print('部屋が作られました： $response');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('既存の部屋に参加しました: $roomId')),
+        );
+      } else {
+        try {
+          final response = await supabase.from('random_match').insert({
+            'status': 'waiting',
+          }).select();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('部屋が作られました')),
-      );
+          print('部屋が作られました： $response');
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('部屋が作られました')),
+          );
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('エラー: $e')),
+          );
+        }
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('エラー: $e')),
@@ -104,7 +122,7 @@ class _HomePageState extends State<HomePage> {
                 OutlinedButton(
                   onPressed: () {
                     setState(() {
-                      _createRandomMatch(context);
+                      _createOrJoinRandomMatch(context);
                     });
                   },
                   child: const Text('プライベート'),
@@ -112,9 +130,7 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(width: 20),
                 OutlinedButton(
                   onPressed: () {
-                    setState(() {
-                      _createRandomMatch(context);
-                    });
+                    setState(() {});
                   },
                   child: const Text('ランダムマッチ'),
                 ),
