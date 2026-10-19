@@ -107,7 +107,7 @@ class _HomePageState extends State<HomePage> {
                       _createRandomMatch(context);
                     });
                   },
-                  child: const Text('プライベートマッチ'),
+                  child: const Text('プライベート'),
                 ),
                 const SizedBox(width: 20),
                 OutlinedButton(
