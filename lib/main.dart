@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+final supabase = Supabase.instance.client;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Hive
   await Hive.initFlutter();
   // Open a Hive box (you can name it as you like)
-  await Hive.openBox('settings');
+  await Hive.openBox('nameBox');
 
   // Initialize Supabase
   await Supabase.initialize(
@@ -68,6 +70,25 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+
+  Future<void> _createRandomMatch(BuildContext context) async {
+    try {
+      final response = await supabase.from('random_match').insert({
+        'status': 'waiting',
+      }).select();
+
+      print('部屋が作られました： $response');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('部屋が作られました')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('エラー: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,16 +99,27 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('ホーム画面'),
-            const SizedBox(height: 20),
-            OutlinedButton(
-              onPressed: () {
-                setState(() {
-                  Navigator.pushNamed(context, '/play');
-                });
-              },
-              child: const Text('プレイ画面へ'),
-            ),
+            Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                OutlinedButton(
+                  onPressed: () {
+                    setState(() {
+                      _createRandomMatch(context);
+                    });
+                  },
+                  child: const Text('プライベートマッチ'),
+                ),
+                const SizedBox(width: 20),
+                OutlinedButton(
+                  onPressed: () {
+                    setState(() {
+                      _createRandomMatch(context);
+                    });
+                  },
+                  child: const Text('ランダムマッチ'),
+                ),
+              ]
+            )
           ],
         ),
       )
