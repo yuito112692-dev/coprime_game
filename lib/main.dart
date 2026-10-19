@@ -107,6 +107,77 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _createOrJoinPrivateMatch(BuildContext context, String roomCode) async {
+    
+    try {
+      final response = await supabase.from('private_match').select()
+        .eq('status', 'waiting').eq('room_code', roomCode).maybeSingle();
+      if (response != null) {
+        // 既存の部屋が見つかった場合、参加する
+        final roomId = response['id'];
+        print('既存の部屋に参加します： $roomId');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('既存の部屋に参加しました: $roomId')),
+        );
+      } else {
+        try {
+          final response = await supabase.from('private_match').insert({
+            'status': 'waiting',
+            'room_code': roomCode,
+          }).select();
+
+          print('部屋が作られました： $response');
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('部屋が作られました')),
+          );
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('エラー: $e')),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('エラー: $e')),
+      );
+    }
+  }
+
+  Future<void> _roomCodeDialog(BuildContext context) async {
+    String roomCode = '';
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('合言葉を入力してください'),
+          content: TextField(
+            onChanged: (value) {
+              roomCode = value;
+            },
+            decoration: const InputDecoration(hintText: "合言葉"),
+          ),
+          actions: <Widget>[
+            OutlinedButton(
+              child: const Text('キャンセル'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            OutlinedButton(
+              child: const Text('決定'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _createOrJoinPrivateMatch(context, roomCode);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,7 +193,7 @@ class _HomePageState extends State<HomePage> {
                 OutlinedButton(
                   onPressed: () {
                     setState(() {
-                      _createOrJoinRandomMatch(context);
+                      _roomCodeDialog(context);
                     });
                   },
                   child: const Text('プライベート'),
@@ -130,7 +201,9 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(width: 20),
                 OutlinedButton(
                   onPressed: () {
-                    setState(() {});
+                    setState(() {
+                      _createOrJoinRandomMatch(context);
+                    });
                   },
                   child: const Text('ランダムマッチ'),
                 ),
