@@ -180,6 +180,8 @@ void numbersCheck (List<int?> boxValue, List<int> numbers) {
     }
   }
 
+  List<int> remove = [];
+
   for (int number in numbers) {
     bool chance = emptyBox.any((value) {
       if (coprime(nearBox(value, boxValue), number)) {
@@ -188,6 +190,9 @@ void numbersCheck (List<int?> boxValue, List<int> numbers) {
         return false;
       }
     });
-    if (!chance) numbers.remove(number);
+    if (!chance) remove.add(number);
+  }
+  for (int n in remove) {
+    numbers.remove(n);
   }
 }
